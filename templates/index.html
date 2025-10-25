@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroClimate - Crop Climate Impact Prediction</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #5a6fd8; }
+        .results { display: none; }
+        .metric { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .risk-low { border-left: 4px solid #28a745; }
+        .risk-medium { border-left: 4px solid #ffc107; }
+        .risk-high { border-left: 4px solid #dc3545; }
+        .crop-item { background: #e9ecef; padding: 10px; margin: 5px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 AgroClimate</h1>
+            <p>Crop Climate Impact Prediction Model</p>
+        </div>
+
+        <div class="card">
+            <h2>Climate Data Input</h2>
+            <form id="predictionForm">
+                <div class="form-grid">
+                    <div>
+                        <div class="form-group">
+                            <label>Average Temperature (°C)</label>
+                            <input type="number" id="temperature_avg" step="0.1" value="25" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Maximum Temperature (°C)</label>
+                            <input type="number" id="temperature_max" step="0.1" value="32" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Minimum Temperature (°C)</label>
+                            <input type="number" id="temperature_min" step="0.1" value="18" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rainfall (mm)</label>
+                            <input type="number" id="rainfall" step="0.1" value="450" required>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label>Humidity (%)</label>
+                            <input type="number" id="humidity" step="0.1" value="65" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Wind Speed (km/h)</label>
+                            <input type="number" id="wind_speed" step="0.1" value="12" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Solar Radiation (W/m²)</label>
+                            <input type="number" id="solar_radiation" step="0.1" value="200" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Region</label>
+                            <select id="region" required>
+                                <option value="0">North</option>
+                                <option value="1">South</option>
+                                <option value="2" selected>East</option>
+                                <option value="3">West</option>
+                                <option value="4">Central</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Crop Type</label>
+                    <select id="crop_type" required>
+                        <option value="0">Wheat</option>
+                        <option value="1" selected>Rice</option>
+                        <option value="2">Maize</option>
+                        <option value="3">Soybeans</option>
+                        <option value="4">Barley</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Predict Climate Impact</button>
+            </form>
+        </div>
+
+        <div id="results" class="results">
+            <div class="card">
+                <h2>Prediction Results</h2>
+                <div id="predictions"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Crop Recommendations</h2>
+                <div id="recommendations"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                temperature_avg: document.getElementById('temperature_avg').value,
+                temperature_max: document.getElementById('temperature_max').value,
+                temperature_min: document.getElementById('temperature_min').value,
+                rainfall: document.getElementById('rainfall').value,
+                humidity: document.getElementById('humidity').value,
+                wind_speed: document.getElementById('wind_speed').value,
+                solar_radiation: document.getElementById('solar_radiation').value,
+                region: document.getElementById('region').value,
+                crop_type: document.getElementById('crop_type').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        function displayResults(result) {
+            const predictions = result.predictions;
+            const recommendations = result.recommendations;
+            
+            // Display predictions
+            const predictionsHtml = `
+                <div class="metric risk-${predictions.risk_category}">
+                    <h3>Climate Risk Score: ${predictions.climate_risk_score}</h3>
+                    <p>Risk Level: <strong>${predictions.risk_category.toUpperCase()}</strong></p>
+                </div>
+                <div class="metric">
+                    <h3>Predicted Yield: ${predictions.predicted_yield} tons/hectare</h3>
+                </div>
+            `;
+            document.getElementById('predictions').innerHTML = predictionsHtml;
+            
+            // Display recommendations
+            let recommendationsHtml = '<h3>Top Recommended Crops:</h3>';
+            recommendations.recommended_crops.forEach((crop, index) => {
+                recommendationsHtml += `
+                    <div class="crop-item">
+                        <strong>${index + 1}. ${crop.crop.toUpperCase()}</strong><br>
+                        Predicted Yield: ${crop.predicted_yield} tons/hectare<br>
+                        Suitability: ${crop.suitability_percentage}
+                    </div>
+                `;
+            });
+            document.getElementById('recommendations').innerHTML = recommendationsHtml;
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

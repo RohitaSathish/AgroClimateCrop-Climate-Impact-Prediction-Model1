@@ -1,0 +1,48 @@
+{
+  "risk_model": {
+    "model_type": "Climate Risk Prediction",
+    "rmse": 0.0014000000000000568,
+    "cv_rmse": 0.044593900928265894,
+    "feature_importance": {
+      "temperature_avg": 0.0037926565553630864,
+      "temperature_max": 0.0849508395025858,
+      "temperature_min": 0.023406699075045573,
+      "rainfall": 0.008493476641174169,
+      "humidity": 0.004402908601616951,
+      "wind_speed": 0.0005211711262323476,
+      "solar_radiation": 0.014251303892722306,
+      "temp_stress": 0.09786423412104871,
+      "cold_stress": 0.3591383205862226,
+      "drought_risk": 0.3786626137077465,
+      "flood_risk": 0.00593781633057079,
+      "temp_range": 0.01448147812165618,
+      "growing_degree_days": 0.004096481738014704,
+      "humidity_stress": 0.0,
+      "region_encoded": 7.645061048050322e-17,
+      "crop_type_encoded": 1.3887210613181002e-16
+    }
+  },
+  "yield_model": {
+    "model_type": "Crop Yield Prediction",
+    "rmse": 1.497173195077473,
+    "cv_rmse": 1.2905788053055975,
+    "feature_importance": {
+      "temperature_avg": 0.04792697972709212,
+      "temperature_max": 0.05636961046564218,
+      "temperature_min": 0.07131069859585941,
+      "rainfall": 0.0861989322851232,
+      "humidity": 0.12123943661471248,
+      "wind_speed": 0.08304780847550106,
+      "solar_radiation": 0.07359933530082985,
+      "temp_stress": 0.0017637151932453552,
+      "cold_stress": 0.004474650425747552,
+      "drought_risk": 0.0042871388569744005,
+      "flood_risk": 0.00010315741438868629,
+      "temp_range": 0.07175352301617605,
+      "growing_degree_days": 0.05075763338664901,
+      "humidity_stress": 0.0,
+      "region_encoded": 0.03131160577036382,
+      "crop_type_encoded": 0.2958557744716949
+    }
+  }
+}

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroClimate - Terminal Output</title>
+    <style>
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #1e1e1e; 
+            color: #00ff00; 
+            margin: 0; 
+            padding: 20px; 
+            line-height: 1.4;
+        }
+        .terminal { 
+            background: #000; 
+            border: 2px solid #333; 
+            border-radius: 8px; 
+            padding: 20px; 
+            max-width: 1000px; 
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        .header { 
+            color: #00ffff; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+        }
+        .separator { 
+            color: #ffff00; 
+            margin: 10px 0;
+        }
+        .risk-low { color: #00ff00; }
+        .risk-medium { color: #ffff00; }
+        .risk-high { color: #ff0000; }
+        .crop-item { 
+            margin: 5px 0; 
+            padding-left: 20px;
+        }
+        .number { color: #ff00ff; }
+        .value { color: #00ffff; }
+        .label { color: #ffffff; }
+        .input-section {
+            background: #2d2d2d;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #555;
+        }
+        input, select {
+            background: #1e1e1e;
+            color: #00ff00;
+            border: 1px solid #555;
+            padding: 5px;
+            margin: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #555;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        button:hover { background: #555; }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="header">AgroClimate - Climate Risk and Crop Recommendation System</div>
+        <div class="separator">==================================================</div>
+        
+        <div class="input-section">
+            <div class="label">Enter Climate Data:</div>
+            <input type="number" id="temp_avg" placeholder="Avg Temperature (°C)" value="25" step="0.1">
+            <input type="number" id="temp_max" placeholder="Max Temperature (°C)" value="32" step="0.1">
+            <input type="number" id="temp_min" placeholder="Min Temperature (°C)" value="18" step="0.1"><br>
+            <input type="number" id="rainfall" placeholder="Rainfall (mm)" value="450" step="0.1">
+            <input type="number" id="humidity" placeholder="Humidity (%)" value="65" step="0.1">
+            <input type="number" id="wind_speed" placeholder="Wind Speed (km/h)" value="12" step="0.1"><br>
+            <input type="number" id="solar_radiation" placeholder="Solar Radiation (W/m²)" value="200" step="0.1">
+            <button onclick="runPrediction()">Run Prediction</button>
+        </div>
+
+        <div id="output">
+            <div class="label">Climate Risk Score: <span class="value risk-low">0.000</span></div>
+            <div class="label">Risk Category: <span class="value risk-low">LOW</span></div>
+            <br>
+            <div class="label">Top 3 Recommended Crops:</div>
+            <div class="separator">------------------------------</div>
+            <div class="crop-item">
+                <span class="number">1.</span> <span class="value">SOYBEANS</span><br>
+                <span class="label">   Predicted Yield: <span class="value">3.17 tons/hectare</span></span><br>
+                <span class="label">   Suitability: <span class="value">63%</span></span><br>
+                <span class="label">   Risk Level: <span class="value risk-low">low</span></span>
+            </div>
+            <br>
+            <div class="crop-item">
+                <span class="number">2.</span> <span class="value">MAIZE</span><br>
+                <span class="label">   Predicted Yield: <span class="value">3.08 tons/hectare</span></span><br>
+                <span class="label">   Suitability: <span class="value">62%</span></span><br>
+                <span class="label">   Risk Level: <span class="value risk-low">low</span></span>
+            </div>
+            <br>
+            <div class="crop-item">
+                <span class="number">3.</span> <span class="value">WHEAT</span><br>
+                <span class="label">   Predicted Yield: <span class="value">2.89 tons/hectare</span></span><br>
+                <span class="label">   Suitability: <span class="value">58%</span></span><br>
+                <span class="label">   Risk Level: <span class="value risk-low">low</span></span>
+            </div>
+            <br>
+            <div class="label">Recommended Adaptation Strategies:</div>
+            <div class="separator">-----------------------------------</div>
+            <div id="strategies"></div>
+        </div>
+    </div>
+
+    <script>
+        async function runPrediction() {
+            const climateData = {
+                temperature_avg: parseFloat(document.getElementById('temp_avg').value),
+                temperature_max: parseFloat(document.getElementById('temp_max').value),
+                temperature_min: parseFloat(document.getElementById('temp_min').value),
+                rainfall: parseFloat(document.getElementById('rainfall').value),
+                humidity: parseFloat(document.getElementById('humidity').value),
+                wind_speed: parseFloat(document.getElementById('wind_speed').value),
+                solar_radiation: parseFloat(document.getElementById('solar_radiation').value)
+            };
+
+            try {
+                const response = await fetch('/terminal_predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(climateData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateOutput(result);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function updateOutput(result) {
+            const riskScore = result.risk_score;
+            const riskCategory = result.risk_category;
+            const recommendations = result.recommendations;
+            const strategies = result.strategies;
+
+            // Update risk display
+            const riskClass = `risk-${riskCategory}`;
+            document.querySelector('#output .value').textContent = riskScore.toFixed(3);
+            document.querySelector('#output .value').className = `value ${riskClass}`;
+            document.querySelectorAll('#output .value')[1].textContent = riskCategory.toUpperCase();
+            document.querySelectorAll('#output .value')[1].className = `value ${riskClass}`;
+
+            // Update crop recommendations
+            const cropItems = document.querySelectorAll('.crop-item');
+            recommendations.slice(0, 3).forEach((crop, index) => {
+                const item = cropItems[index];
+                const riskClass = `risk-${crop.risk_category}`;
+                
+                item.querySelector('.value').textContent = crop.crop.toUpperCase();
+                const values = item.querySelectorAll('.value');
+                values[1].textContent = `${crop.predicted_yield} tons/hectare`;
+                values[2].textContent = crop.suitability_percentage;
+                values[3].textContent = crop.risk_category;
+                values[3].className = `value ${riskClass}`;
+            });
+
+            // Update strategies
+            const strategiesDiv = document.getElementById('strategies');
+            strategiesDiv.innerHTML = strategies.map((strategy, index) => 
+                `<div class="label">${index + 1}. ${strategy}</div>`
+            ).join('');
+        }
+    </script>
+</body>
+</html>
